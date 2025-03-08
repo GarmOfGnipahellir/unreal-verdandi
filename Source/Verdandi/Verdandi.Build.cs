@@ -42,6 +42,7 @@ public class Verdandi : ModuleRules
 				"UnrealEd",
 				"AssetDefinition",
 				"PropertyEditor",
+				"InputCore",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

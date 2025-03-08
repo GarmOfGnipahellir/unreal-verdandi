@@ -18,7 +18,7 @@ class VERDANDI_API UVerdandiTimeline : public UObject
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TObjectPtr<ULevelSequence> Target;
+	TSoftObjectPtr<ULevelSequence> Target;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
 	TObjectPtr<UVerdandiSource> Source;

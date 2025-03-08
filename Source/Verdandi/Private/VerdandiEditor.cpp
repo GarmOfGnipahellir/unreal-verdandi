@@ -3,6 +3,7 @@
 
 #include "VerdandiEditor.h"
 
+#include "SVerdandiItemsView.h"
 #include "VerdandiTimeline.h"
 
 const FName ItemsId = "Items";
@@ -18,6 +19,8 @@ void FVerdandiEditor::Initialize(
 {
 	VerdandiTimelineEdited = InVerdandiTimeline;
 
+	ItemsView = SNew(SVerdandiItemsView, SharedThis(this));
+
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>(
 		"PropertyEditor"
 	);
@@ -28,8 +31,8 @@ void FVerdandiEditor::Initialize(
 	DetailsViewArgs.bUpdatesFromSelection = false;
 	DetailsViewArgs.NameAreaSettings = FDetailsViewArgs::HideNameArea;
 
-	AssetDetailsWidget = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
-	AssetDetailsWidget->SetObject(VerdandiTimelineEdited);
+	DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
+	DetailsView->SetObject(VerdandiTimelineEdited);
 
 	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout(
 			"Standalone_VerdandiEditor_Layout_v0.2"
@@ -75,14 +78,14 @@ void FVerdandiEditor::RegisterTabSpawners(const TSharedRef<FTabManager>& InTabMa
 	const TSharedRef<FWorkspaceItem>& WorkspaceMenuCategoryRef = WorkspaceMenuCategory.ToSharedRef();
 
 	FAssetEditorToolkit::RegisterTabSpawners(InTabManager);
-	
+
 	InTabManager->RegisterTabSpawner(
 			ItemsId,
 			FOnSpawnTab::CreateSP(this, &FVerdandiEditor::SpawnTab_Items)
 		)
 		.SetDisplayName(FText::FromString("Items"))
 		.SetGroup(WorkspaceMenuCategoryRef);
-	
+
 	InTabManager->RegisterTabSpawner(
 			ViolationsId,
 			FOnSpawnTab::CreateSP(this, &FVerdandiEditor::SpawnTab_Violations)
@@ -131,10 +134,18 @@ FString FVerdandiEditor::GetWorldCentricTabPrefix() const
 	return "Verdandi ";
 }
 
+void FVerdandiEditor::OnClose()
+{
+	FAssetEditorToolkit::OnClose();
+}
+
 TSharedRef<SDockTab> FVerdandiEditor::SpawnTab_Items(const FSpawnTabArgs& Args)
 {
-	// TODO: Spawn item view when implemented.
-	return SNew(SDockTab).Label(FText::FromString("Item"));
+	return SNew(SDockTab)
+		.Label(FText::FromString("Item"))
+		[
+			ItemsView.ToSharedRef()
+		];
 }
 
 TSharedRef<SDockTab> FVerdandiEditor::SpawnTab_Violations(const FSpawnTabArgs& Args)
@@ -148,6 +159,6 @@ TSharedRef<SDockTab> FVerdandiEditor::SpawnTab_Details(const FSpawnTabArgs& Args
 	return SNew(SDockTab)
 		.Label(FText::FromString("Details"))
 		[
-			AssetDetailsWidget.ToSharedRef()
+			DetailsView.ToSharedRef()
 		];
 }

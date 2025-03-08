@@ -4,12 +4,13 @@
 
 #include "CoreMinimal.h"
 
+class SVerdandiItemsView;
 class UVerdandiTimeline;
 /**
  * 
  */
 class VERDANDI_API FVerdandiEditor
-	: public FAssetEditorToolkit, public FGCObject
+	: public FAssetEditorToolkit, public FGCObject, public FSelfRegisteringEditorUndoClient
 {
 public:
 	void Initialize(
@@ -17,6 +18,8 @@ public:
 		const TSharedPtr<IToolkitHost>& InToolkitHost,
 		UVerdandiTimeline* InVerdandiTimeline
 	);
+
+	const UVerdandiTimeline* GetVerdandiTimeline() const { return VerdandiTimelineEdited; }
 
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
@@ -28,9 +31,11 @@ public:
 	virtual FText GetBaseToolkitName() const override;
 	virtual FLinearColor GetWorldCentricTabColorScale() const override;
 	virtual FString GetWorldCentricTabPrefix() const override;
+	virtual void OnClose() override;
 
 protected:
-	TSharedPtr<IDetailsView> AssetDetailsWidget;
+	TSharedPtr<SVerdandiItemsView> ItemsView;
+	TSharedPtr<IDetailsView> DetailsView;
 
 	TObjectPtr<UVerdandiTimeline> VerdandiTimelineEdited = nullptr;
 

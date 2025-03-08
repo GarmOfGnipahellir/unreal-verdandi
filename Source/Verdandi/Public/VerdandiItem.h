@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "VerdandiItem.generated.h"
 
+class UVerdandiViolation;
 /**
  * 
  */
@@ -15,6 +16,8 @@ class VERDANDI_API UVerdandiItem : public UObject
 	GENERATED_BODY()
 
 public:
+	TArray<TObjectPtr<UVerdandiViolation>> Violations;
+	
 	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
 	virtual FText GetLabelText() const PURE_VIRTUAL(UVerdandiItem::GetLabelText, return FText::FromString("No name"););
 
@@ -44,4 +47,6 @@ public:
 
 	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
 	virtual TArray<UVerdandiItem*> GetChildren() { return TArray<UVerdandiItem*>(); }
+
+	void FindViolations();
 };
