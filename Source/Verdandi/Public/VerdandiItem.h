@@ -9,10 +9,8 @@
 class UVerdandiSource;
 class UVerdandiTimeline;
 class UVerdandiViolation;
-/**
- * 
- */
-UCLASS(BlueprintType, Abstract)
+
+UCLASS(BlueprintType, Abstract, Transient)
 class VERDANDI_API UVerdandiItem : public UObject
 {
 	GENERATED_BODY()
@@ -72,12 +70,12 @@ public:
 private:
 	friend UVerdandiSource;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UVerdandiTimeline> Timeline;
 	
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UVerdandiItem> Parent = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TArray<TObjectPtr<UVerdandiItem>> Children;
 };

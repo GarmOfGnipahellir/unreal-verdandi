@@ -22,7 +22,7 @@ public:
 		UVerdandiTimeline* InVerdandiTimeline
 	);
 
-	const UVerdandiTimeline* GetVerdandiTimeline() const { return VerdandiTimelineEdited; }
+	UVerdandiTimeline* GetTimeline() const { return VerdandiTimelineEdited; }
 
 	virtual void RegisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
 	virtual void UnregisterTabSpawners(const TSharedRef<FTabManager>& InTabManager) override;
@@ -39,7 +39,8 @@ public:
 	void Refresh();
 
 	void SetSelectedItems(TArray<TObjectPtr<UVerdandiItem>> InItems);
-	
+	TArray<TObjectPtr<UVerdandiItem>> GetSelectedItems() const { return SelectedItems; }
+
 	void OnFinishedChangingProperties(const FPropertyChangedEvent& PropertyChangedEvent);
 
 protected:

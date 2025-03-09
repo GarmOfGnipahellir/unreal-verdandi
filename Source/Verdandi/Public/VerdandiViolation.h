@@ -18,10 +18,13 @@ class VERDANDI_API UVerdandiViolation : public UObject
 
 public:
 	TObjectPtr<UVerdandiItem> Item;
+	FText Description;
 
 	virtual FText GetLabelText() const;
+	virtual FText GetDescription() const { return Description; }
 
-	virtual bool TryFix(bool bIsDryRun = false) const PURE_VIRTUAL(UVerdandiViolation, return true;)
+	virtual bool TryFix(bool bIsDryRun = false) PURE_VIRTUAL(UVerdandiViolation, return true;)
 
 	UVerdandiTimeline* GetTimeline() const;
+	FText GetFromText() const;
 };

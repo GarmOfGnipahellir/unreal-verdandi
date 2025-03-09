@@ -43,6 +43,8 @@ public class Verdandi : ModuleRules
 				"AssetDefinition",
 				"PropertyEditor",
 				"InputCore",
+				"AssetTools",
+				"ToolMenus",
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

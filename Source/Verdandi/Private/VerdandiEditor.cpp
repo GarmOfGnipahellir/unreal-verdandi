@@ -5,6 +5,7 @@
 
 #include "SVerdandiItemsView.h"
 #include "SVerdandiViolationsView.h"
+#include "VerdandiItem.h"
 #include "VerdandiTimeline.h"
 #include "VerdandiViolation.h"
 
@@ -145,7 +146,7 @@ void FVerdandiEditor::OnClose()
 
 void FVerdandiEditor::Refresh()
 {
-	ItemsView->Refresh();
+	ItemsView->FindItems();
 	ViolationsView->Refresh();
 }
 

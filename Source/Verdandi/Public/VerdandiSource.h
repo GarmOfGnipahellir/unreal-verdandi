@@ -24,9 +24,9 @@ public:
 	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
 
 private:
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UVerdandiTimeline> Timeline;
 
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TArray<TObjectPtr<UVerdandiItem>> RootItems;
 };

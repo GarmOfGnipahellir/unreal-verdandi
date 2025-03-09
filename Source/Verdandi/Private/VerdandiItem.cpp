@@ -9,7 +9,8 @@
 
 FString UVerdandiItem::GetItemDir() const
 {
-	return FPaths::Combine(GetTimeline()->GetRootDir(), GetItemName());
+	FString ParentDir = Parent ? Parent->GetItemDir() : GetTimeline()->GetRootDir();
+	return FPaths::Combine(ParentDir, GetItemName());
 }
 
 FString UVerdandiItem::GetItemPath() const
@@ -32,6 +33,7 @@ void UVerdandiItem::Refresh()
 
 void UVerdandiItem::FindViolations()
 {
+	Violations.Empty();
 	for (auto Class : FVerdandiModule::GetViolationTypes())
 	{
 		UVerdandiViolation* Violation = NewObject<UVerdandiViolation>(this, Class);

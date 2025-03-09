@@ -23,5 +23,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
 	TObjectPtr<UVerdandiSource> Source;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, AdvancedDisplay, Transient)
+	TArray<TObjectPtr<UVerdandiItem>> Items;
+
 	FString GetRootDir() const;
 };

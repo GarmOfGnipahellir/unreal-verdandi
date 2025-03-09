@@ -16,5 +16,6 @@ class VERDANDI_API UVerdandiViolation_MissingSequenceAsset : public UVerdandiVio
 	GENERATED_BODY()
 
 public:
-	virtual bool TryFix(bool bIsDryRun) const override;
+	virtual FText GetLabelText() const override { return FText::FromString("Missing Sequence Asset"); }
+	virtual bool TryFix(bool bIsDryRun) override;
 };

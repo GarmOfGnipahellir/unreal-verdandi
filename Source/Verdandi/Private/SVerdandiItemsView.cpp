@@ -6,18 +6,22 @@
 #include "VerdandiEditor.h"
 #include "VerdandiItem.h"
 #include "VerdandiTimeline.h"
-#include "Misc/SourceLocationUtils.h"
-#include "Styling/SlateIconFinder.h"
+#include "Widgets/Colors/SColorBlock.h"
+#include "Widgets/Images/SThrobber.h"
 
 
 FName SVerdandiItemsView::ColumnItemLabel = "ItemLabel";
 FName SVerdandiItemsView::ColumnStatus = "Status";
+FName SVerdandiItemsView::ColumnPath = "Path";
 
 void SVerdandiItemsView::Construct(const FArguments& InArgs, TSharedPtr<FVerdandiEditor> InVerdandiEditor)
 {
 	VerdandiEditorPtr = InVerdandiEditor;
 
-	ItemsFound = VerdandiEditorPtr.Pin()->GetVerdandiTimeline()->Source->GetRootItems();
+	if (InVerdandiEditor->GetTimeline()->Items.IsEmpty())
+	{
+		FindItems();
+	}
 
 	HeaderRow = SNew(SHeaderRow);
 	HeaderRow->AddColumn(
@@ -35,51 +39,125 @@ void SVerdandiItemsView::Construct(const FArguments& InArgs, TSharedPtr<FVerdand
 			.Image(FAppStyle::Get().GetBrush("Icons.Alert.Solid"))
 		]
 	);
-	HeaderRow->AddColumn(SHeaderRow::Column(ColumnItemLabel).DefaultLabel(FText::FromString("Item Label")));
+	HeaderRow->AddColumn(SHeaderRow::Column(ColumnItemLabel).DefaultLabel(FText::FromString("Item")));
+	HeaderRow->AddColumn(SHeaderRow::Column(ColumnPath).DefaultLabel(FText::FromString("Path")));
+
 
 	this->ChildSlot
 	[
-		SNew(SVerticalBox)
-		+ SVerticalBox::Slot()
-		.FillHeight(1)
+		SNew(SOverlay)
+		+ SOverlay::Slot()
 		[
-			SAssignNew(TreeView, STreeViewType)
-			.TreeItemsSource(&ItemsFound)
-			.HeaderRow(HeaderRow)
-			.OnGenerateRow(this, &SVerdandiItemsView::OnGenerateRow)
-			.OnGetChildren(this, &SVerdandiItemsView::OnGetChildren)
-			.OnSelectionChanged(this, &SVerdandiItemsView::OnSelectionChanged)
+			SNew(SVerticalBox)
+			+ SVerticalBox::Slot()
+			.FillHeight(1)
+			[
+				SAssignNew(TreeView, STreeViewType)
+				.TreeItemsSource(&InVerdandiEditor->GetTimeline()->Items)
+				.HeaderRow(HeaderRow)
+				.OnGenerateRow(this, &SVerdandiItemsView::OnGenerateRow)
+				.OnGetChildren(this, &SVerdandiItemsView::OnGetChildren)
+				.OnSelectionChanged(this, &SVerdandiItemsView::OnSelectionChanged)
+			]
+		]
+		+ SOverlay::Slot()
+		[
+			SNew(SOverlay)
+			.Visibility(this, &SVerdandiItemsView::ThrobberVisibility)
+			+ SOverlay::Slot()
+			[
+				SNew(SColorBlock)
+				.Color(FLinearColor(0, 0, 0, 0.5))
+			]
+			+ SOverlay::Slot()
+			.HAlign(HAlign_Center)
+			[
+				SNew(SThrobber)
+			]
 		]
 	];
 }
 
+void SVerdandiItemsView::Tick(const FGeometry& AllottedGeometry, const double InCurrentTime, const float InDeltaTime)
+{
+	SCompoundWidget::Tick(AllottedGeometry, InCurrentTime, InDeltaTime);
+
+	if (bFindingItems && FindItemsComplete())
+	{
+		TreeView->RequestTreeRefresh();
+		bFindingItems = false;
+	}
+}
+
 void SVerdandiItemsView::Refresh()
 {
-	ItemsFound.Empty();
-	if (auto Source = VerdandiEditorPtr.Pin()->GetVerdandiTimeline()->Source)
-	{
-		Source->Refresh();
-		ItemsFound = Source->GetRootItems();
-	}
-	TreeView->RequestTreeRefresh();
+	// RootItemsFound.Empty();
+	// if (auto Source = VerdandiEditorPtr.Pin()->GetVerdandiTimeline()->Source)
+	// {
+	// 	Source->Refresh();
+	// 	RootItemsFound = Source->GetRootItems();
+	// }
+	// TreeView->RequestTreeRefresh();
 }
 
 TSharedRef<ITableRow> SVerdandiItemsView::OnGenerateRow(
-	FItemTypePtr InItem,
+	FVerdandiItemPtr InItem,
 	const TSharedRef<STableViewBase>& InOwnerTable
 )
 {
 	return SNew(SVerdandiItemRow, InOwnerTable).Item(InItem);
 }
 
-void SVerdandiItemsView::OnGetChildren(FItemTypePtr InItem, TArray<FItemTypePtr>& OutChildren)
+void SVerdandiItemsView::OnGetChildren(FVerdandiItemPtr InItem, TArray<FVerdandiItemPtr>& OutChildren)
 {
 	OutChildren = InItem->GetChildren();
 }
 
-void SVerdandiItemsView::OnSelectionChanged(TObjectPtr<UVerdandiItem> VerdandiItem, ESelectInfo::Type Arg)
+void SVerdandiItemsView::OnSelectionChanged(FVerdandiItemPtr VerdandiItem, ESelectInfo::Type Arg)
 {
 	VerdandiEditorPtr.Pin()->SetSelectedItems(TreeView->GetSelectedItems());
+}
+
+EVisibility SVerdandiItemsView::ThrobberVisibility() const
+{
+	if (bFindingItems)
+	{
+		return EVisibility::Visible;
+	}
+	return EVisibility::Hidden;
+}
+
+void SVerdandiItemsView::FFindItemsTask::DoTask(
+	ENamedThreads::Type CurrentThread,
+	const FGraphEventRef& CompletionGraphEvent
+)
+{
+	Timeline->Items.Empty();
+	Timeline->Source->Refresh();
+	Timeline->Items.Append(Timeline->Source->GetRootItems());
+}
+
+void SVerdandiItemsView::FindItems()
+{
+	if (bFindingItems) return;
+
+	FindItemsEvents.Add(
+		TGraphTask<FFindItemsTask>::CreateTask(nullptr, ENamedThreads::Type::GameThread)
+		.ConstructAndDispatchWhenReady(VerdandiEditorPtr.Pin()->GetTimeline())
+	);
+	bFindingItems = true;
+}
+
+bool SVerdandiItemsView::FindItemsComplete()
+{
+	for (auto& Task : FindItemsEvents)
+	{
+		if (!Task->IsComplete())
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 void SVerdandiItemRow::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView)
@@ -106,13 +184,16 @@ TSharedRef<SWidget> SVerdandiItemRow::GenerateWidgetForColumn(const FName& InCol
 	}
 	if (InColumnName == SVerdandiItemsView::ColumnStatus)
 	{
-		if (!Item->Violations.IsEmpty())
-		{
-			return SNew(SImage).Image(FAppStyle::Get().GetBrush("Icons.Error.Solid"));
-		}
 		return SNew(SImage)
 			.Image(FAppStyle::Get().GetBrush("Icons.Error.Solid"))
 			.Visibility(this, &SVerdandiItemRow::StatusVisibility);
+	}
+	if (InColumnName == SVerdandiItemsView::ColumnPath)
+	{
+		return SNew(STextBlock)
+			.Text(FText::FromString(Item->GetItemDir()))
+			.Margin(FMargin(6, 0, 0, 0))
+			.ColorAndOpacity(FLinearColor(1, 1, 1, 0.5f));
 	}
 	return SNew(STextBlock).Text(FText::FromString("Invalid Column"));
 }
