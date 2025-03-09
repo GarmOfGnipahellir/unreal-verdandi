@@ -22,4 +22,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced)
 	TObjectPtr<UVerdandiSource> Source;
+
+	FString GetRootDir() const;
 };

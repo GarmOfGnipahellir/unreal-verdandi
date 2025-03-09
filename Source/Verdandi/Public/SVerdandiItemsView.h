@@ -18,6 +18,8 @@ public:
 
 	void Construct(const FArguments& InArgs, TSharedPtr<FVerdandiEditor> InVerdandiEditor);
 
+	void Refresh();
+
 protected:
 	typedef FVerdandiItemPtr FItemTypePtr;
 	typedef STreeView<FItemTypePtr> STreeViewType;
@@ -30,6 +32,7 @@ protected:
 
 	TSharedRef<ITableRow> OnGenerateRow(FItemTypePtr InItem, const TSharedRef<STableViewBase>& InOwnerTable);
 	void OnGetChildren(FItemTypePtr InItem, TArray<FItemTypePtr>& OutChildren);
+	void OnSelectionChanged(TObjectPtr<UVerdandiItem> VerdandiItem, ESelectInfo::Type Arg);
 };
 
 class SVerdandiItemRow : public SMultiColumnTableRow<FVerdandiItemPtr>

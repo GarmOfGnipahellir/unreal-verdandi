@@ -6,6 +6,8 @@
 #include "UObject/Object.h"
 #include "VerdandiItem.generated.h"
 
+class UVerdandiSource;
+class UVerdandiTimeline;
 class UVerdandiViolation;
 /**
  * 
@@ -17,9 +19,12 @@ class VERDANDI_API UVerdandiItem : public UObject
 
 public:
 	TArray<TObjectPtr<UVerdandiViolation>> Violations;
-	
+
 	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
-	virtual FText GetLabelText() const PURE_VIRTUAL(UVerdandiItem::GetLabelText, return FText::FromString("No name"););
+	virtual FString GetItemName() const PURE_VIRTUAL(UVerdandiItem::GetItemName, return "Unknown";)
+
+	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
+	virtual FText GetLabelText() const { return FText::FromString(GetItemName()); }
 
 	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
 	virtual FQualifiedFrameTime GetParentStartTime() const
@@ -46,7 +51,33 @@ public:
 	}
 
 	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
-	virtual TArray<UVerdandiItem*> GetChildren() { return TArray<UVerdandiItem*>(); }
+	FString GetItemDir() const;
 
+	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
+	FString GetItemPath() const;
+	
+	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
+	FORCEINLINE UVerdandiTimeline* GetTimeline() const { return Timeline; }
+
+	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
+	FORCEINLINE UVerdandiItem* GetParent() const { return Parent; }
+
+	UFUNCTION(Category="Verdandi|Item", BlueprintCallable)
+	FORCEINLINE TArray<UVerdandiItem*> GetChildren() const { return Children; }
+
+	void Refresh();
+	virtual void FindChildren(TArray<TObjectPtr<UVerdandiItem>>& OutChildren) {}
 	void FindViolations();
+
+private:
+	friend UVerdandiSource;
+
+	UPROPERTY()
+	TObjectPtr<UVerdandiTimeline> Timeline;
+	
+	UPROPERTY()
+	TObjectPtr<UVerdandiItem> Parent = nullptr;
+
+	UPROPERTY()
+	TArray<TObjectPtr<UVerdandiItem>> Children;
 };

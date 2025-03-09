@@ -4,7 +4,9 @@
 #include "VerdandiEditor.h"
 
 #include "SVerdandiItemsView.h"
+#include "SVerdandiViolationsView.h"
 #include "VerdandiTimeline.h"
+#include "VerdandiViolation.h"
 
 const FName ItemsId = "Items";
 const FName ViolationsId = "Violations";
@@ -20,6 +22,7 @@ void FVerdandiEditor::Initialize(
 	VerdandiTimelineEdited = InVerdandiTimeline;
 
 	ItemsView = SNew(SVerdandiItemsView, SharedThis(this));
+	ViolationsView = SNew(SVerdandiViolationsView, SharedThis(this));
 
 	FPropertyEditorModule& PropertyEditorModule = FModuleManager::Get().GetModuleChecked<FPropertyEditorModule>(
 		"PropertyEditor"
@@ -33,6 +36,7 @@ void FVerdandiEditor::Initialize(
 
 	DetailsView = PropertyEditorModule.CreateDetailView(DetailsViewArgs);
 	DetailsView->SetObject(VerdandiTimelineEdited);
+	DetailsView->OnFinishedChangingProperties().AddSP(this, &FVerdandiEditor::OnFinishedChangingProperties);
 
 	const TSharedRef<FTabManager::FLayout> StandaloneDefaultLayout = FTabManager::NewLayout(
 			"Standalone_VerdandiEditor_Layout_v0.2"
@@ -139,6 +143,28 @@ void FVerdandiEditor::OnClose()
 	FAssetEditorToolkit::OnClose();
 }
 
+void FVerdandiEditor::Refresh()
+{
+	ItemsView->Refresh();
+	ViolationsView->Refresh();
+}
+
+void FVerdandiEditor::SetSelectedItems(TArray<TObjectPtr<UVerdandiItem>> InItems)
+{
+	SelectedItems = InItems;
+	ViolationsView->FoundViolations.Empty();
+	for (auto Item : SelectedItems)
+	{
+		ViolationsView->FoundViolations.Append(Item->Violations);
+	}
+	ViolationsView->ListView->RequestListRefresh();
+}
+
+void FVerdandiEditor::OnFinishedChangingProperties(const FPropertyChangedEvent& PropertyChangedEvent)
+{
+	Refresh();
+}
+
 TSharedRef<SDockTab> FVerdandiEditor::SpawnTab_Items(const FSpawnTabArgs& Args)
 {
 	return SNew(SDockTab)
@@ -150,8 +176,11 @@ TSharedRef<SDockTab> FVerdandiEditor::SpawnTab_Items(const FSpawnTabArgs& Args)
 
 TSharedRef<SDockTab> FVerdandiEditor::SpawnTab_Violations(const FSpawnTabArgs& Args)
 {
-	// TODO: Spawn violations view when implemented.
-	return SNew(SDockTab).Label(FText::FromString("Violations"));
+	return SNew(SDockTab)
+		.Label(FText::FromString("Violations"))
+		[
+			ViolationsView.ToSharedRef()
+		];
 }
 
 TSharedRef<SDockTab> FVerdandiEditor::SpawnTab_Details(const FSpawnTabArgs& Args)

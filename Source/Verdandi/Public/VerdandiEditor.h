@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 
+class UVerdandiViolation;
+class UVerdandiItem;
+class SVerdandiViolationsView;
 class SVerdandiItemsView;
 class UVerdandiTimeline;
 /**
@@ -33,11 +36,20 @@ public:
 	virtual FString GetWorldCentricTabPrefix() const override;
 	virtual void OnClose() override;
 
+	void Refresh();
+
+	void SetSelectedItems(TArray<TObjectPtr<UVerdandiItem>> InItems);
+	
+	void OnFinishedChangingProperties(const FPropertyChangedEvent& PropertyChangedEvent);
+
 protected:
 	TSharedPtr<SVerdandiItemsView> ItemsView;
+	TSharedPtr<SVerdandiViolationsView> ViolationsView;
 	TSharedPtr<IDetailsView> DetailsView;
 
 	TObjectPtr<UVerdandiTimeline> VerdandiTimelineEdited = nullptr;
+
+	TArray<TObjectPtr<UVerdandiItem>> SelectedItems;
 
 	TSharedRef<SDockTab> SpawnTab_Items(const FSpawnTabArgs& Args);
 	TSharedRef<SDockTab> SpawnTab_Violations(const FSpawnTabArgs& Args);

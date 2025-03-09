@@ -2,3 +2,8 @@
 
 
 #include "VerdandiTimeline.h"
+
+FString UVerdandiTimeline::GetRootDir() const
+{
+	return FPaths::GetPath(Target.GetLongPackageName());
+}

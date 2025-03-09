@@ -16,5 +16,5 @@ class VERDANDI_API UVerdandiViolation_MissingSequenceAsset : public UVerdandiVio
 	GENERATED_BODY()
 
 public:
-	virtual bool TryFix() const override;
+	virtual bool TryFix(bool bIsDryRun) const override;
 };

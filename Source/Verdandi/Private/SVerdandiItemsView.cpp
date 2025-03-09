@@ -6,6 +6,7 @@
 #include "VerdandiEditor.h"
 #include "VerdandiItem.h"
 #include "VerdandiTimeline.h"
+#include "Misc/SourceLocationUtils.h"
 #include "Styling/SlateIconFinder.h"
 
 
@@ -47,8 +48,20 @@ void SVerdandiItemsView::Construct(const FArguments& InArgs, TSharedPtr<FVerdand
 			.HeaderRow(HeaderRow)
 			.OnGenerateRow(this, &SVerdandiItemsView::OnGenerateRow)
 			.OnGetChildren(this, &SVerdandiItemsView::OnGetChildren)
+			.OnSelectionChanged(this, &SVerdandiItemsView::OnSelectionChanged)
 		]
 	];
+}
+
+void SVerdandiItemsView::Refresh()
+{
+	ItemsFound.Empty();
+	if (auto Source = VerdandiEditorPtr.Pin()->GetVerdandiTimeline()->Source)
+	{
+		Source->Refresh();
+		ItemsFound = Source->GetRootItems();
+	}
+	TreeView->RequestTreeRefresh();
 }
 
 TSharedRef<ITableRow> SVerdandiItemsView::OnGenerateRow(
@@ -62,6 +75,11 @@ TSharedRef<ITableRow> SVerdandiItemsView::OnGenerateRow(
 void SVerdandiItemsView::OnGetChildren(FItemTypePtr InItem, TArray<FItemTypePtr>& OutChildren)
 {
 	OutChildren = InItem->GetChildren();
+}
+
+void SVerdandiItemsView::OnSelectionChanged(TObjectPtr<UVerdandiItem> VerdandiItem, ESelectInfo::Type Arg)
+{
+	VerdandiEditorPtr.Pin()->SetSelectedItems(TreeView->GetSelectedItems());
 }
 
 void SVerdandiItemRow::Construct(const FArguments& InArgs, const TSharedRef<STableViewBase>& OwnerTableView)

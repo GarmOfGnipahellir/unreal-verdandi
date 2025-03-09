@@ -6,6 +6,7 @@
 #include "UObject/Object.h"
 #include "VerdandiViolation.generated.h"
 
+class UVerdandiTimeline;
 class UVerdandiItem;
 /**
  * 
@@ -20,10 +21,7 @@ public:
 
 	virtual FText GetLabelText() const;
 
-	virtual bool TryFix() const PURE_VIRTUAL(UVerdandiViolation, return true;)
+	virtual bool TryFix(bool bIsDryRun = false) const PURE_VIRTUAL(UVerdandiViolation, return true;)
 
-	FORCEINLINE bool IsDryRun() const { return bIsDryRun; }
-
-private:
-	bool bIsDryRun;
+	UVerdandiTimeline* GetTimeline() const;
 };
