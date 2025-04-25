@@ -8,6 +8,7 @@
 #include "VerdandiItem.h"
 #include "VerdandiViolation.h"
 
+FName SVerdandiViolationsView::ColumnLevel = "Level";
 FName SVerdandiViolationsView::ColumnType = "Type";
 FName SVerdandiViolationsView::ColumnDescription = "Description";
 FName SVerdandiViolationsView::ColumnFrom = "From";
@@ -47,6 +48,21 @@ void SVerdandiViolationsView::Construct(const FArguments& InArgs, TSharedPtr<FVe
 	}
 
 	HeaderRow = SNew(SHeaderRow);
+	HeaderRow->AddColumn(
+		SHeaderRow::Column(ColumnLevel)
+		.FixedWidth(24)
+		.HAlignHeader(HAlign_Left)
+		.VAlignHeader(VAlign_Center)
+		.HAlignCell(HAlign_Center)
+		.VAlignCell(VAlign_Center)
+		.HeaderContentPadding(FMargin(4, 0, 0, 0))
+		[
+			SNew(SImage)
+			.ColorAndOpacity(FSlateColor::UseForeground())
+			.DesiredSizeOverride(FVector2D(16, 16))
+			.Image(FAppStyle::Get().GetBrush("Icons.Alert.Solid"))
+		]
+	);
 	HeaderRow->AddColumn(SHeaderRow::Column(ColumnType).DefaultLabel(FText::FromString("Violation")).FillWidth(0.5f));
 	HeaderRow->AddColumn(SHeaderRow::Column(ColumnDescription).DefaultLabel(FText::FromString("Description")));
 	HeaderRow->AddColumn(SHeaderRow::Column(ColumnFrom).DefaultLabel(FText::FromString("From")).FillWidth(0.25f));
@@ -98,6 +114,20 @@ void SVerdandiViolationRow::Construct(const FArguments& InArgs, const TSharedRef
 
 TSharedRef<SWidget> SVerdandiViolationRow::GenerateWidgetForColumn(const FName& InColumnName)
 {
+	if (InColumnName == SVerdandiViolationsView::ColumnLevel)
+	{
+		FName BrushName = "Icons.Alert.Solid";
+		switch (Violation->Level)
+		{
+		case EViolationLevel::Warning:
+			BrushName = "Icons.Warning.Solid";
+			break;
+		case EViolationLevel::Error:
+			BrushName = "Icons.Error.Solid";
+			break;
+		}
+		return SNew(SImage).Image(FAppStyle::Get().GetBrush(BrushName));
+	}
 	if (InColumnName == SVerdandiViolationsView::ColumnType)
 	{
 		return SNew(STextBlock).Text(Violation->GetLabelText()).Margin(FMargin(6, 0, 0, 0));

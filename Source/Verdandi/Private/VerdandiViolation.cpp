@@ -5,9 +5,12 @@
 
 #include "VerdandiItem.h"
 
-FText UVerdandiViolation::GetLabelText() const
+UVerdandiViolation::UVerdandiViolation(): Level(EViolationLevel::Warning)
 {
-	return FText::FromString(GetClass()->GetName());
+	if (IsTemplate())
+	{
+		Label = FText::FromString(GetClass()->GetName());
+	}
 }
 
 UVerdandiTimeline* UVerdandiViolation::GetTimeline() const

@@ -8,23 +8,48 @@
 
 class UVerdandiTimeline;
 class UVerdandiItem;
+
+UENUM(BlueprintType)
+enum class EViolationLevel : uint8
+{
+	Warning,
+	Error,
+};
+
 /**
  * 
  */
-UCLASS(Abstract)
+UCLASS(Blueprintable, Abstract)
 class VERDANDI_API UVerdandiViolation : public UObject
 {
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UVerdandiItem> Item;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText Label;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FText Description;
 
-	virtual FText GetLabelText() const;
-	virtual FText GetDescription() const { return Description; }
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EViolationLevel Level;
 
-	virtual bool TryFix(bool bIsDryRun = false) PURE_VIRTUAL(UVerdandiViolation, return true;)
+	UVerdandiViolation();
+
+	virtual FText GetLabelText() const { return Label; }
+	virtual FText GetDescription() const { return Description; }
+	virtual EViolationLevel GetLevel() const { return Level; }
+
+	virtual bool TryFix(bool bIsDryRun = false) { return BP_TryFix(bIsDryRun); }
 
 	UVerdandiTimeline* GetTimeline() const;
 	FText GetFromText() const;
+
+protected:
+	UFUNCTION(Category="Verdandi|Violation", BlueprintNativeEvent, DisplayName="Try Fix")
+	bool BP_TryFix(bool bIsDryRun = false);
+	bool BP_TryFix_Implementation(bool bIsDryRun = false) { return true; }
 };

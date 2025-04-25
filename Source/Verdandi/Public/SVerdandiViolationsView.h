@@ -16,6 +16,7 @@ public:
 	SLATE_BEGIN_ARGS(SVerdandiViolationsView) {}
 	SLATE_END_ARGS()
 	
+	static FName ColumnLevel;
 	static FName ColumnType;
 	static FName ColumnDescription;
 	static FName ColumnFrom;

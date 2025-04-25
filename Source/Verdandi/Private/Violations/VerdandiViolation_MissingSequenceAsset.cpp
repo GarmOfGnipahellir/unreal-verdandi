@@ -16,6 +16,7 @@ bool UVerdandiViolation_MissingSequenceAsset::TryFix(bool bIsDryRun)
 		if (bIsDryRun)
 		{
 			Description = FText::FromString("Asset does not exist.");
+			Level = EViolationLevel::Warning;
 			return false;
 		}
 
@@ -24,6 +25,7 @@ bool UVerdandiViolation_MissingSequenceAsset::TryFix(bool bIsDryRun)
 	if (AssetData.AssetClassPath != ULevelSequence::StaticClass()->GetClassPathName())
 	{
 		Description = FText::FromString("Asset exists but is not a Level Sequence.");
+		Level = EViolationLevel::Error;
 		return false;
 	}
 	return true;

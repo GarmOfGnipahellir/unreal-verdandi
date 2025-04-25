@@ -6,6 +6,7 @@
 #include "VerdandiEditor.h"
 #include "VerdandiItem.h"
 #include "VerdandiTimeline.h"
+#include "VerdandiViolation.h"
 #include "Widgets/Colors/SColorBlock.h"
 #include "Widgets/Images/SThrobber.h"
 
@@ -185,8 +186,9 @@ TSharedRef<SWidget> SVerdandiItemRow::GenerateWidgetForColumn(const FName& InCol
 	if (InColumnName == SVerdandiItemsView::ColumnStatus)
 	{
 		return SNew(SImage)
-			.Image(FAppStyle::Get().GetBrush("Icons.Error.Solid"))
-			.Visibility(this, &SVerdandiItemRow::StatusVisibility);
+			.Image(this, &SVerdandiItemRow::StatusImage)
+			//.Visibility(this, &SVerdandiItemRow::StatusVisibility)
+			.ToolTip(this, &SVerdandiItemRow::StatusTooltip);
 	}
 	if (InColumnName == SVerdandiItemsView::ColumnPath)
 	{
@@ -198,6 +200,72 @@ TSharedRef<SWidget> SVerdandiItemRow::GenerateWidgetForColumn(const FName& InCol
 	return SNew(STextBlock).Text(FText::FromString("Invalid Column"));
 }
 
+const FSlateBrush* SVerdandiItemRow::StatusImage() const
+{
+	FName BrushName = "Icons.Help";
+	if (!Item->Violations.IsEmpty())
+	{
+		EViolationLevel HighestLevel = EViolationLevel::Warning;
+		for (auto Violation : Item->Violations)
+		{
+			if (Violation->Level > HighestLevel)
+			{
+				HighestLevel = Violation->Level;
+			}
+		}
+		switch (HighestLevel)
+		{
+		case EViolationLevel::Warning:
+			BrushName = "Icons.Warning.Solid";
+			break;
+		case EViolationLevel::Error:
+			BrushName = "Icons.Error.Solid";
+			break;
+		}
+	}
+	else
+	{
+		TOptional<EViolationLevel> HighestLevel;
+		TQueue<UVerdandiItem*> Queue;
+		for (auto Child : Item->GetChildren())
+		{
+			Queue.Enqueue(Child);
+		}
+		UVerdandiItem* QueueItem;
+		while (Queue.Dequeue(QueueItem))
+		{
+			for (auto Violation : QueueItem->Violations)
+			{
+				if (!HighestLevel || Violation->Level > *HighestLevel)
+				{
+					HighestLevel = Violation->Level;
+				}
+			}
+			for (auto Child : QueueItem->GetChildren())
+			{
+				Queue.Enqueue(Child);
+			}
+		}
+		if (!HighestLevel)
+		{
+			BrushName = "None";
+		}
+		else
+		{
+			switch (*HighestLevel)
+			{
+			case EViolationLevel::Warning:
+				BrushName = "Icons.WarningWithColor";
+				break;
+			case EViolationLevel::Error:
+				BrushName = "Icons.ErrorWithColor";
+				break;
+			}
+		}
+	}
+	return FAppStyle::Get().GetBrush(BrushName);
+}
+
 EVisibility SVerdandiItemRow::StatusVisibility() const
 {
 	if (Item->Violations.IsEmpty())
@@ -205,4 +273,27 @@ EVisibility SVerdandiItemRow::StatusVisibility() const
 		return EVisibility::Hidden;
 	}
 	return EVisibility::Visible;
+}
+
+TSharedPtr<IToolTip> SVerdandiItemRow::StatusTooltip() const
+{
+	FText ToolTipText;
+	EViolationLevel HighestLevel = EViolationLevel::Warning;
+	for (auto Violation : Item->Violations)
+	{
+		if (Violation->Level > HighestLevel)
+		{
+			HighestLevel = Violation->Level;
+		}
+	}
+	switch (HighestLevel)
+	{
+	case EViolationLevel::Warning:
+		ToolTipText = FText::FromString("Can be auto-fixed.");
+		break;
+	case EViolationLevel::Error:
+		ToolTipText = FText::FromString("Not auto-fixable.");
+		break;
+	}
+	return FSlateApplicationBase::Get().MakeToolTip(ToolTipText);
 }

@@ -87,7 +87,9 @@ public:
 
 	virtual TSharedRef<SWidget> GenerateWidgetForColumn(const FName& InColumnName) override;
 
+	const FSlateBrush* StatusImage() const;
 	EVisibility StatusVisibility() const;
+	TSharedPtr<IToolTip> StatusTooltip() const;
 
 protected:
 	FVerdandiItemPtr Item;
